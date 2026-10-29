@@ -1,5 +1,6 @@
 
 
+
 name: Java CI
 
 on:
@@ -25,10 +26,11 @@ jobs:
           cache: maven
 
       - name: Build and test with Maven
+        working-directory: java-cicd-demo
         run: mvn --batch-mode clean verify
 
       - name: Upload WAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: java-cicd-demo-war
-          path: target/ROOT.war
+          path: java-cicd-demo/target/ROOT.war
