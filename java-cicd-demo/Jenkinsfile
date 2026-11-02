@@ -36,7 +36,7 @@ pipeline {
                     docker run -d \
                       --name java-cicd-demo \
                       --restart unless-stopped \
-                      -p 8081:8080 \
+                      -p 8082:8080 \
                       java-cicd-demo:${BUILD_NUMBER}
                 '''
             }
