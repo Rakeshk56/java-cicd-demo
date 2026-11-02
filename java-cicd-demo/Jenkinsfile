@@ -1,29 +1,53 @@
+
 pipeline {
     agent any
-    triggers { pollSCM('H/2 * * * *') }
+
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
     stages {
-        stage('Checkout from GitHub') {
-            steps { checkout scm }
-        }
-        stage('Build and test with Maven') {
-            steps { sh 'mvn -B clean package' }
-        }
-        stage('Build Docker image') {
-            steps { sh 'docker build -t java-cicd-demo:${BUILD_NUMBER} .' }
-        }
-        stage('Deploy container on Azure VM') {
+        stage('Build and Test with Maven') {
             steps {
                 sh '''
-                    docker rm -f java-cicd-demo || true
-                    docker run -d --name java-cicd-demo --restart unless-stopped \
-                      -p 8081:8080 java-cicd-demo:${BUILD_NUMBER}
+                    docker run --rm \
+                      -v "$WORKSPACE:/app" \
+                      -w /app \
+                      maven:3.9-eclipse-temurin-21 \
+                      mvn -B clean package
                 '''
             }
         }
-        stage('Verify deployment') {
+
+        stage('Build Docker Image') {
             steps {
-                sh 'docker ps --filter name=java-cicd-demo'
-                sh 'docker logs --tail 30 java-cicd-demo'
+                sh '''
+                    docker build \
+                      -t java-cicd-demo:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Deploy on Local Docker') {
+            steps {
+                sh '''
+                    docker rm -f java-cicd-demo || true
+
+                    docker run -d \
+                      --name java-cicd-demo \
+                      --restart unless-stopped \
+                      -p 8081:8080 \
+                      java-cicd-demo:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    docker ps --filter name=java-cicd-demo
+                    docker logs --tail 30 java-cicd-demo
+                '''
             }
         }
     }
