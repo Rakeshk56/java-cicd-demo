@@ -23,7 +23,7 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                      -t java-cicd-demo:${BUILD_NUMBER} .
+                      -t java-cicd-demo:${BUILD_NUMBER} ./java-cicd-demo
                 '''
             }
         }
